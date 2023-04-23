@@ -147,6 +147,7 @@ async def process_game_button(callback_query: CallbackQuery, state: FSMContext):
         await callback_query.message.answer('Ты молодец!')
     else:
         await callback_query.message.answer('Ты не правильно!')
+    await state.finish()
 
 
 @dp.message_handler(commands=['buisnes'])
