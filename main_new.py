@@ -112,7 +112,7 @@ async def process_callback_button(callback_query: CallbackQuery, state: FSMConte
     game_button2 = InlineKeyboardButton(game_passwords[1], callback_data="gb2")
     game_button3 = InlineKeyboardButton(game_passwords[2], callback_data="gb3")
     markup_game = InlineKeyboardMarkup().add(game_button1, game_button2,game_button3)
-    await callback_query.message.answer(f'Давай подзаработаем!nПеред тобой капча, снизу три кнопки. Нажми на верную капчу. Если угадаешь – получишь рандомное количество монет до 500nnn {password}', reply_markup=markup_game)
+    await callback_query.message.answer(f'Давай подзаработаем!\nПеред тобой капча, снизу три кнопки. Нажми на верную капчу. Если угадаешь – получишь рандомное количество монет до 500\n\n\n {password}', reply_markup=markup_game)
     async with state.proxy() as data:
         data['gbb1'] = game_button1
         data['gbb2'] = game_button2
@@ -121,12 +121,14 @@ async def process_callback_button(callback_query: CallbackQuery, state: FSMConte
 
 @dp.callback_query_handler(text=('gb1','gb2','gb3'), state='*')
 async def process_game_button(callback_query: CallbackQuery, state: FSMContext):
+    next_captcha = InlineKeyboardButton('Следующая капча', callback_data='game_button')
+    in_main_menu = InlineKeyboardButton('В главное меню', callback_data='/cityinfo')
+    captcha_buttons = InlineKeyboardMarkup().add(next_captcha, in_main_menu)
     async with state.proxy() as data:
         game_button1 = data['gbb1']
         game_button2 = data['gbb2']
         game_button3 = data['gbb3']
         password = data['ps']
-    print(callback_query.data)
     answer_user = None
     if callback_query.data == 'gb1':
         answer_user = game_button1
@@ -134,8 +136,6 @@ async def process_game_button(callback_query: CallbackQuery, state: FSMContext):
         var = answer_user = game_button2
     elif callback_query.data == 'gb3':
         var = answer_user = game_button3
-    print(answer_user)
-    print(password)
     if answer_user['text'] == password:
         from_user_id = callback_query.from_user.id
         cursor.execute('SELECT money FROM cities WHERE user_id=?', (from_user_id,))
@@ -144,10 +144,12 @@ async def process_game_button(callback_query: CallbackQuery, state: FSMContext):
         new_balance = balance[0] + random_sur
         cursor.execute('UPDATE cities SET money=? WHERE user_id=?', (new_balance, from_user_id))
         conn.commit()
-        await callback_query.message.answer('Ты молодец!')
+        await callback_query.message.answer(f'Ты молодец! Ты получил {random_sur}', reply_markup=captcha_buttons)
     else:
-        await callback_query.message.answer('Ты не правильно!')
+        await callback_query.message.answer(f'Не правильно!', reply_markup=captcha_buttons)
     await state.finish()
+
+    
 
 
 @dp.message_handler(commands=['buisnes'])
