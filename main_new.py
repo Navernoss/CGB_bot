@@ -188,3 +188,5 @@ async def balance(message: types.Message):
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
+
+# salavat i ivan ne clone
